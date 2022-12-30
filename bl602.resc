@@ -1,0 +1,24 @@
+:name: bl602
+:description: 
+
+$name?="bl602"
+
+using sysbus
+mach create $name
+
+i @BL_UART.cs
+
+machine LoadPlatformDescription @bl602.repl
+
+showAnalyzer uart0
+sysbus LoadELF @/home/mnishant/Dev/my/pinecone/bl_iot_sdk/customer_app/peripheral/demo_uart/build_out/demo_uart.elf
+
+sysbus Tag <0x10008000 4> "PRCI_HFROSCCFG" 0xFFFFFFFF
+sysbus Tag <0x10008008 4> "PRCI_PLLCFG" 0xFFFFFFFF
+
+cpu PC `sysbus GetSymbolAddress "bl602_start"`
+cpu PerformanceInMips 320
+sysbus.cpu LogFunctionNames true
+sysbus LogAllPeripheralsAccess true
+
+start

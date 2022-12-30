@@ -1,0 +1,107 @@
+cpu: CPU.RiscV32 @ sysbus
+    cpuType: "rv32imacf"
+    privilegeArchitecture: PrivilegeArchitecture.Priv1_10
+    timeProvider: clint
+
+wram: Memory.MappedMemory @sysbus 0x42030000
+    size: 0x1C000
+
+retram: Memory.MappedMemory @sysbus 0x40010000
+    size: 0x1000
+
+hbn: Memory.MappedMemory @sysbus 0x4000F000
+    size: 0x1000
+
+pds: Memory.MappedMemory @sysbus 0x4000E000
+    size: 0x1000
+
+sdu: Memory.MappedMemory @sysbus 0x4000D000
+    size: 0x1000
+
+dma: Memory.MappedMemory @sysbus 0x4000C000
+    size: 0x1000
+
+qspi: Memory.MappedMemory @sysbus 0x4000B000
+    size: 0x1000
+
+//irr: Memory.MappedMemory @sysbus 0x4000A600
+//    size: 0x100
+
+//timer: Memory.MappedMemory @sysbus 0x4000A600
+//    size: 0x100
+//
+//pwm: Memory.MappedMemory @sysbus 0x4000A600
+//    size: 0x100
+//
+//i2c: Memory.MappedMemory @sysbus 0x4000A600
+//    size: 0x100
+//
+//spi: Memory.MappedMemory @sysbus 0x4000A600
+//    size: 0x100
+//
+uart0: UART.BL_UART @ sysbus 0x4000A000
+    IRQ -> plic@29
+
+uart1: UART.BL_UART @ sysbus 0x4000A100
+    IRQ -> plic@30
+
+l1c: Memory.MappedMemory @sysbus 0x40009000
+    size: 0x1000
+
+efuse: Memory.MappedMemory @sysbus 0x40007000
+    size: 0x1000
+
+tz2: Memory.MappedMemory @sysbus 0x40006000
+    size: 0x1000
+
+tz1: Memory.MappedMemory @sysbus 0x40005000
+    size: 0x1000
+
+sec: Memory.MappedMemory @sysbus 0x40004000
+    size: 0x1000
+
+gpip: Memory.MappedMemory @sysbus 0x40002000
+    size: 0x1000
+
+mix: Memory.MappedMemory @sysbus 0x40001000
+    size: 0x1000
+
+glb: Memory.MappedMemory @sysbus 0x40000000
+    size: 0x1000
+
+pram: Memory.MappedMemory @sysbus 0x22020000
+    size: 0x10000
+
+dram: Memory.MappedMemory @sysbus 0x42020000
+    size: 0x10000
+
+xip: Memory.MappedMemory @sysbus 0x23000000
+    size: 0x1000000
+
+ptcm1: Memory.MappedMemory @sysbus 0x22014000
+    size: 0xC000
+
+dtcm1: Memory.MappedMemory @sysbus 0x42014000
+    size: 0xC000
+
+ptcm0: Memory.MappedMemory @sysbus 0x22008000
+    size: 0xC000
+
+dtcm0: Memory.MappedMemory @sysbus 0x42008000
+    size: 0xC000
+
+rom: Memory.MappedMemory @sysbus 0x21000000
+    size: 0x1C000
+
+plic: IRQControllers.PlatformLevelInterruptController @ sysbus 0x0C000000
+    0 -> cpu@11
+    numberOfSources: 52
+    numberOfContexts: 1
+
+clint: IRQControllers.CoreLevelInterruptor  @ sysbus 0x02000000
+    [0,1] -> cpu@[3,7]
+    frequency: 62000000
+
+sysbus:
+    init:
+        ApplySVD @https://raw.githubusercontent.com/bouffalolab/bl_iot_sdk/master/components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/soc602_reg.svd
