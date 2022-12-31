@@ -1,5 +1,5 @@
 cpu: CPU.RiscV32 @ sysbus
-    cpuType: "rv32imacf"
+    cpuType: "rv32imacfd"
     privilegeArchitecture: PrivilegeArchitecture.Priv1_10
     timeProvider: clint
 
