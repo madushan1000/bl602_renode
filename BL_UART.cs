@@ -19,12 +19,28 @@ namespace Antmicro.Renode.Peripherals.UART
             IRQ = new GPIO();
             var registersMap = new Dictionary<long, DoubleWordRegister>
             {
-                {(long)Registers.uart_fifo_wdata, new DoubleWordRegister(this)
-                    .WithValueField(0, 8, FieldMode.Write, writeCallback: (_, value) => this.TransmitCharacter((byte)value))
-                },
                 {(long)Registers.uart_fifo_config_1, new DoubleWordRegister(this)
                     .WithValueField(0, 8, FieldMode.Read, valueProviderCallback: _ =>  1)
                     .WithValueField(8, 8, FieldMode.Read, valueProviderCallback: _ => 1)
+                },
+                {(long)Registers.uart_fifo_wdata, new DoubleWordRegister(this)
+                    .WithValueField(0, 8, FieldMode.Write, writeCallback: (_, value) => this.TransmitCharacter((byte)value))
+                },
+                {(long)Registers.uart_fifo_rdata, new DoubleWordRegister(this)
+                    .WithValueField(0, 8, FieldMode.Read, valueProviderCallback: _ => {
+                        this.Log(LogLevel.Warning, "reading text");
+                        if(!TryGetCharacter(out var character))
+                            {
+                                this.Log(LogLevel.Warning, "Trying to read from an empty Rx FIFO.");
+                            }
+                            return character;
+                    })
+                },
+                {(long)Registers.uart_int_sts, new DoubleWordRegister(this)
+                    .WithFlag(1, FieldMode.Read, name: "urx_end_int", valueProviderCallback: _ => {
+                            this.Log(LogLevel.Warning, "urx_end_int gettring read");
+                            return true;
+                        })
                 },
             };
 
@@ -80,7 +96,7 @@ namespace Antmicro.Renode.Peripherals.UART
 
         public override Parity ParityBit => Parity.None;
 
-        public override uint BaudRate => 2000000;
+        public override uint BaudRate => 115200;
 
         protected override void CharWritten()
         {
@@ -95,15 +111,17 @@ namespace Antmicro.Renode.Peripherals.UART
         private void UpdateInterrupts()
         {
             // rxEventPending is latched
-            rxEventPending.Value = (Count != 0);
+            //urx_end_int.Value = (Count != 0);
+            //rxEventEnabled.Value = true;
 
             // tx fifo is never full, so `txEventPending` is always false
-            var eventPending = (rxEventEnabled.Value && rxEventPending.Value);
-            IRQ.Set(eventPending);
+            //var eventPending = (/*rxEventEnabled.Value &&*/ urx_end_int.Value);
+            //this.Log(LogLevel.Warning, $"eventPending:{eventPending}");
+            IRQ.Set();
         }
 
         private IFlagRegisterField rxEventEnabled;
-        private IFlagRegisterField rxEventPending;
+        private IFlagRegisterField urx_end_int;
         private readonly DoubleWordRegisterCollection registers;
 
         private enum Registers : long
