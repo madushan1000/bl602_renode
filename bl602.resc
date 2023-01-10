@@ -6,22 +6,42 @@ $name?="bl602"
 using sysbus
 mach create $name
 
-i @BL_UART.cs
+include @CoreLocalInterruptController.cs
+
+EnsureTypeIsLoaded "Antmicro.Renode.Peripherals.IRQControllers.CoreLocalInterruptController"
+EnsureTypeIsLoaded "Antmicro.Renode.Peripherals.CPU.RiscV32"
+include @RiscV32CLIC.cs
+
+include @BL_UART.cs
 
 machine LoadPlatformDescription @bl602.repl
 
 showAnalyzer uart0
+
 sysbus LoadBinary @/home/mnishant/Dev/my/pinecone/bl602-re/images/rom.bin 0x21000000
 :sysbus LoadBinary @bl602_demo_event.fullflash.bin 0x23000000
 sysbus LoadBinary @partition.bin 0x42049C04
-sysbus LoadELF @/home/mnishant/Dev/my/pinecone/bl_iot_sdk/customer_app/bl602_demo_event/build_out/bl602_demo_event.elf
 
-sysbus Tag <0x10008000 4> "PRCI_HFROSCCFG" 0xFFFFFFFF
-sysbus Tag <0x10008008 4> "PRCI_PLLCFG" 0xFFFFFFFF
+
+sysbus LoadELF @/home/mnishant/Dev/my/pinecone/bl_iot_sdk/customer_app/bl602_demo_event/build_out/bl602_demo_event.elf
+:sysbus LoadBinary @/home/mnishant/Dev/my/pinecone/nuttxspace/nuttx/nuttx.bin 0x23000000
+
 
 cpu PC `sysbus GetSymbolAddress "bl602_start"`
-cpu PerformanceInMips 320
-:sysbus.cpu LogFunctionNames true
-sysbus LogAllPeripheralsAccess true
+:cpu PC 0x23000000
 
+
+cpu PerformanceInMips 160
+
+sysbus.cpu LogFunctionNames true
+:sysbus.cpu LogFunctionNames true "interrupt bl_irq"
+
+:sysbus LogAllPeripheralsAccess true
+:sysbus LogPeripheralAccess clint false
+logLevel -1 sysbus.clic
+sysbus LogPeripheralAccess sysbus.clic true
+
+:machine StartGdbServer 3333
+:cpu EnableExecutionTracing @/tmp/disass.dump.c PC
 start
+:pause

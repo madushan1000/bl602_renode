@@ -47,7 +47,8 @@ namespace Antmicro.Renode.Peripherals.CPU {
 
             RegisterCSR((ulong)CSRs.MCAUSE, () => registers.Read((long)CSRs.MCAUSE), value => registers.Write((long)CSRs.MCAUSE, (uint)value));
             InstallCustomInstruction(pattern: "00000000000000000000000001110011", handler: HandleEcallInstruction);
-            InstallCustomInstruction(pattern: "00110000001000000000000001110011", handler: HandleMretInstruction); 
+            InstallCustomInstruction(pattern: "00110000001000000000000001110011", handler: HandleMretInstruction);
+            //InstallCustomInstruction(pattern: "0000100-----00000---ddddd0001011", handler: HandleWaitirqInstruction);
             
         }
 
@@ -101,22 +102,24 @@ namespace Antmicro.Renode.Peripherals.CPU {
             lock(irqLock)
             {
                 bool isInterruptsEnabled = BitHelper.IsBitSet((ulong)MSTATUS, 3); //MIE
-                if (number == 11 && isInterruptsEnabled) //from CLIC
+                if (number == 11) //from CLIC
                 {
                     isInterruptPending = true;
                     if(value)
                         irqId = clic.pendingIrq.Id;
-                    doInterrupt();
+                    if(isInterruptsEnabled)
+                        doInterrupt();
                 }
-                else if (number == 7 && isInterruptsEnabled) //timer
+                else if (number == 7) //timer
                 {
                     isInterruptPending = true;
                     IrqId = 7;
-                    doInterrupt();
+                    if(isInterruptsEnabled)
+                        doInterrupt();
                     //base.OnGPIO(number, value);
                 }
                 else {
-                    base.OnGPIO(number, value);
+                   //base.OnGPIO(number, value);
                 }
             }
         }
@@ -143,6 +146,10 @@ namespace Antmicro.Renode.Peripherals.CPU {
             PC = MEPC;
             TlibSetReturnRequest();
         }
+        // private void HandleWaitirqInstruction(UInt64 opcode)
+        // {
+        //     TlibEnterWfi();
+        // }
         private void doInterrupt()
         {
             this.Log(LogLevel.Warning, $"irqId: {irqId} PC: {PC} MEPC: {MEPC}");
@@ -158,9 +165,16 @@ namespace Antmicro.Renode.Peripherals.CPU {
             PC = MTVEC;
 
             TlibSetReturnRequest();
+            //if (TlibTsWfi() != 0) {
+                //TlibCleanWfiProcState();
+            //} 
         }
         [Import]
         private FuncInt32Int32 TlibSetReturnOnException;
+        // [Import]
+        // private Action TlibCleanWfiProcState;
+        // [Import]
+        // private FuncInt32 TlibTsWfi;
         private readonly object irqLock = new object();
         public uint IrqId {
             get 
@@ -182,8 +196,8 @@ namespace Antmicro.Renode.Peripherals.CPU {
         private CoreLocalInterruptController clic;
         private uint irqId;
         private bool isInterruptPending;
-        public new RegisterValue MIE => 0; //Not in clic mode
-        public new RegisterValue MIP => 0; //Not in clic mode
+        //public new RegisterValue MIE => 0; //Not in clic mode
+        //public new RegisterValue MIP => 0; //Not in clic mode
         private enum CSRs
         {
             //MSTATUS = 0x300

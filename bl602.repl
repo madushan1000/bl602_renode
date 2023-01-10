@@ -1,7 +1,27 @@
-cpu: CPU.RiscV32 @ sysbus
+//cpu: CPU.RiscV32 @ sysbus
+//    cpuType: "rv32imacfd"
+//    privilegeArchitecture: PrivilegeArchitecture.Priv1_11
+//    timeProvider: clint
+    //interruptMode: InterruptMode.Vectored
+
+cpu: CPU.RiscV32CLIC @ sysbus
     cpuType: "rv32imacfd"
-    privilegeArchitecture: PrivilegeArchitecture.Priv1_10
     timeProvider: clint
+    clic: clic
+    //interruptMode: InterruptMode.Vectored
+
+clic: IRQControllers.CoreLocalInterruptController @ sysbus 0x02800000
+    0 -> cpu@11
+    numberOfSources: 111
+
+//clic: IRQControllers.PlatformLevelInterruptController @ sysbus 0x02800000
+//    0 -> cpu@11
+//    numberOfSources: 52
+//    numberOfContexts: 1
+
+clint: IRQControllers.CoreLevelInterruptor  @ sysbus 0x02000000
+    [0,1] -> cpu@[3,7]
+    frequency: 40000000
 
 wram: Memory.MappedMemory @sysbus 0x42030000
     size: 0x1C000
@@ -40,10 +60,13 @@ qspi: Memory.MappedMemory @sysbus 0x4000B000
 //    size: 0x100
 //
 uart0: UART.BL_UART @ sysbus 0x4000A000
-    IRQ -> plic@29
+    //IRQ -> clic@30
+    IRQ -> clic@45
+    //IRQ -> clic@47
+    //IRQ -> cpu@11
 
 uart1: UART.BL_UART @ sysbus 0x4000A100
-    IRQ -> plic@30
+    IRQ -> clic@32
 
 l1c: Memory.MappedMemory @sysbus 0x40009000
     size: 0x1000
@@ -92,15 +115,6 @@ dtcm0: Memory.MappedMemory @sysbus 0x42008000
 
 rom: Memory.MappedMemory @sysbus 0x21000000
     size: 0x1C000
-
-plic: IRQControllers.PlatformLevelInterruptController @ sysbus 0x0C000000
-    0 -> cpu@11
-    numberOfSources: 52
-    numberOfContexts: 1
-
-clint: IRQControllers.CoreLevelInterruptor  @ sysbus 0x02000000
-    [0,1] -> cpu@[3,7]
-    frequency: 62000000
 
 sysbus:
     init:
