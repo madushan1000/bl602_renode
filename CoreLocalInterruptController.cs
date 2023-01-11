@@ -46,7 +46,7 @@ namespace Antmicro.Renode.Peripherals.IRQControllers {
                         this.Log(LogLevel.Warning, $"trying to write {value} to {j}");
                         irqSources[j].IsEnabled = value;
                         this.Log(LogLevel.Warning, $"wrote {value}");
-                        UpdateInterrupts();
+                        //UpdateInterrupts();
                     });
                 this.Log(LogLevel.Warning, $"added register clicIntIE{j} @ {(long)Registers.clicIntIE + i}");
             }

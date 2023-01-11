@@ -18,10 +18,10 @@ machine LoadPlatformDescription @bl602.repl
 
 showAnalyzer uart0
 
-sysbus LoadBinary @/home/mnishant/Dev/my/pinecone/bl602-re/images/rom.bin 0x21000000
 :sysbus LoadBinary @bl602_demo_event.fullflash.bin 0x23000000
+sysbus LoadBinary @/home/mnishant/Dev/my/pinecone/bl602-re/images/rom.bin 0x21000000
 sysbus LoadBinary @partition.bin 0x42049C04
-
+sysbus LoadBinary @bl602.dtb 0x231e7000
 
 sysbus LoadELF @/home/mnishant/Dev/my/pinecone/bl_iot_sdk/customer_app/bl602_demo_event/build_out/bl602_demo_event.elf
 :sysbus LoadBinary @/home/mnishant/Dev/my/pinecone/nuttxspace/nuttx/nuttx.bin 0x23000000
@@ -33,12 +33,16 @@ cpu PC `sysbus GetSymbolAddress "bl602_start"`
 
 cpu PerformanceInMips 160
 
-sysbus.cpu LogFunctionNames true
+:sysbus.cpu LogFunctionNames true
 :sysbus.cpu LogFunctionNames true "interrupt bl_irq"
 
-:sysbus LogAllPeripheralsAccess true
-:sysbus LogPeripheralAccess clint false
+sysbus LogAllPeripheralsAccess true
+sysbus LogPeripheralAccess clint false
+sysbus LogPeripheralAccess uart0 false
+logLevel 3 sysbus.uart0
 logLevel -1 sysbus.clic
+:logLevel -1 sysbus.clint
+:logLevel -1 sysbus.cpu
 sysbus LogPeripheralAccess sysbus.clic true
 
 :machine StartGdbServer 3333

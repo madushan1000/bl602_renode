@@ -116,7 +116,7 @@ namespace Antmicro.Renode.Peripherals.CPU {
                     IrqId = 7;
                     if(isInterruptsEnabled)
                         doInterrupt();
-                    //base.OnGPIO(number, value);
+                    base.OnGPIO(number, value);
                 }
                 else {
                    //base.OnGPIO(number, value);
